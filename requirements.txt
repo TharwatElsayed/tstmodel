@@ -2,7 +2,6 @@ pickle-mixin
 streamlit
 vaderSentiment
 textstat
-pyenchant
 splitter
 nltk
 pandas
