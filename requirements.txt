@@ -1,7 +1,20 @@
-streamlit==1.25.0  # Ensure it's the version you're using
-scikit-learn==1.2.2  # For CountVectorizer and model prediction
-pandas==2.0.3  # For handling CSV files
-numpy==1.25.2  # Required by scikit-learn
-tensorflow==2.10.0  # If using TensorFlow for the model
-torch==2.0.1  # If using PyTorch
+# Text processing and NLP libraries
+nltk==3.8.1
+vaderSentiment==3.3.2
 
+# Data handling and numerical computation
+pandas==2.0.3
+numpy==1.25.2
+
+# Machine Learning libraries
+scikit-learn==1.2.2
+
+# Deep Learning libraries (TensorFlow bundled with Keras)
+tensorflow==2.13.0
+
+# Visualization
+matplotlib==3.7.2
+seaborn==0.12.2
+
+# Optional (for saving/loading models or other purposes)
+pickle-mixin==1.0.2  # For pickle (optional)
