@@ -18,7 +18,7 @@ if st.button("Classify"):
     if user_input:
         # Transform the user input using the vectorizer
         input_vector = vectorizer.transform([user_input])
-        
+        st.write(input_vector)
         # Predict the class using the logistic regression model
         prediction = model.predict(input_vector)[0]
 
