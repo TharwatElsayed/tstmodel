@@ -1,5 +1,13 @@
-streamlit
-scikit-learn
-numpy
-pandas
 pickle-mixin
+streamlit
+vaderSentiment
+textstat
+pyenchant
+splitter
+nltk
+pandas
+numpy
+scikit-learn
+tensorflow
+matplotlib
+seaborn
