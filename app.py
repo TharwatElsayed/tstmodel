@@ -1,20 +1,9 @@
 import streamlit as st
 import pickle
-import pandas as pd
-from sklearn.feature_extraction.text import CountVectorizer
 
-# Load the trained Logistic Regression model
-model_path = 'LR_model.pkl'
-with open(model_path, 'rb') as file:
-    model = pickle.load(file)
-
-# Load the dataset to get vocabulary for vectorizer
-csv_file_path = 'labeled_data.csv'
-data_df = pd.read_csv(csv_file_path)
-
-# Set up CountVectorizer based on the dataset (fit only on 'tweet' column)
-vectorizer = CountVectorizer(stop_words='english')
-vectorizer.fit(data_df['tweet'])
+# Load the pre-saved model and vectorizer
+with open('model_with_vectorizer.pkl', 'rb') as file:
+    model, vectorizer = pickle.load(file)
 
 # Streamlit app setup
 st.title("Hate Speech Detection App")
