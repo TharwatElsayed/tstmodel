@@ -1,34 +1,109 @@
+# Import required libraries
 import streamlit as st
+import re
+import nltk
+from nltk.stem import PorterStemmer
+from nltk.tokenize import word_tokenize
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer as VS
+import pandas as pd
+import numpy as np
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.model_selection import StratifiedKFold, GridSearchCV, KFold
+from sklearn.metrics import classification_report, auc, roc_curve
+from sklearn.svm import LinearSVC
+import tensorflow as tf
+from tensorflow.keras.preprocessing.text import one_hot, Tokenizer
+from tensorflow.keras.utils import pad_sequences
+from tensorflow.keras.models import Sequential, Model, load_model
+from tensorflow.keras.layers import (
+    Input, LSTM, Embedding, Dropout, Flatten, GlobalMaxPooling1D,
+    Dense, Conv1D, MaxPooling1D, Bidirectional, Concatenate, GRU, BatchNormalization
+)
 import pickle
+import enchant
 
-# Load the pre-saved model and vectorizer
-with open('model_with_vectorizer.pkl', 'rb') as file:
-    model, vectorizer = pickle.load(file)
+# Initialize the dictionary for hashtag splitting
+d = enchant.Dict('en_UK')
+dus = enchant.Dict('en_US')
 
-# Streamlit app setup
-st.title("Hate Speech Detection App")
-st.write("This app uses a logistic regression model to classify text into one of three categories: "
-         "'Hate Speech', 'Offensive Language', or 'Neither'.")
+# Preprocessing functions
+space_pattern = '\s+'
+giant_url_regex = ('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|'
+        '[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+')
+mention_regex = '@[\w\-]+'
+emoji_regex = '&#[0-9]{4,6};'
 
-# Text input from user
-user_input = st.text_area("Enter the text for classification:")
+def preprocess(text_string):
+    parsed_text = re.sub(space_pattern, ' ', text_string)
+    parsed_text = re.sub(giant_url_regex, '', parsed_text)
+    parsed_text = re.sub(mention_regex, '', parsed_text)
+    parsed_text = re.sub('RT', '', parsed_text)
+    parsed_text = re.sub(emoji_regex, '', parsed_text)
+    parsed_text = re.sub('…', '', parsed_text)
+    return parsed_text
 
-# When user submits the text
-if st.button("Classify"):
-    if user_input:
-        # Transform the user input using the vectorizer
-        input_vector = vectorizer.transform([user_input])
-        st.write(input_vector)
-        # Predict the class using the logistic regression model
-        prediction = model.predict(input_vector)[0]
-        st.write(input_vector)
+def preprocess_clean(text_string, remove_hashtags=True, remove_special_chars=True):
+    text_string = preprocess(text_string)
+    parsed_text = text_string.lower()
+    parsed_text = re.sub('\'', '', parsed_text)
+    parsed_text = re.sub(':', '', parsed_text)
+    parsed_text = re.sub(',', '', parsed_text)
+    parsed_text = re.sub('&amp', '', parsed_text)
 
-        # Display the prediction result
-        if prediction == 0:
-            st.success("The text is classified as: Hate Speech")
-        elif prediction == 1:
-            st.warning("The text is classified as: Offensive Language")
+    if remove_hashtags:
+        parsed_text = re.sub('#[\w\-]+', '', parsed_text)
+    if remove_special_chars:
+        parsed_text = re.sub('(\!|\?)+', '', parsed_text)
+    return parsed_text
+
+def strip_hashtags(text):
+    text = preprocess_clean(text, False, True)
+    hashtags = re.findall('#[\w\-]+', text)
+    for tag in hashtags:
+        cleantag = tag[1:]
+        if d.check(cleantag) or dus.check(cleantag):
+            text = re.sub(tag, cleantag, text)
         else:
-            st.info("The text is classified as: Neither")
-    else:
-        st.error("Please enter some text to classify.")
+            hashtagSplit = ""
+            for word in splitter.split(cleantag.lower(), 'en_US'):
+                hashtagSplit += word + " "
+            text = re.sub(tag, hashtagSplit, text)
+    return text
+
+stemmer = PorterStemmer()
+
+def stemming(text):
+    stemmed_tweets = [stemmer.stem(t) for t in text.split()]
+    return stemmed_tweets
+
+# Streamlit application
+st.title("Tweet Sentiment/Class Prediction")
+
+# Input box for entering the tweet
+user_input = st.text_area("Enter the tweet:", "I love this!")
+
+# Button to trigger prediction
+if st.button('Predict'):
+    # Preprocessing steps
+    preprocessed_tweet = preprocess(user_input)
+    clean_tweet = preprocess_clean(preprocessed_tweet)
+    stripped_tweet = strip_hashtags(clean_tweet)
+    stemmed_tweet = stemming(stripped_tweet)
+    
+    # Tokenize and pad the tweet
+    tokenizer = Tokenizer()
+    tokenizer.fit_on_texts(stemmed_tweet)
+    encoded_docs = tokenizer.texts_to_sequences(stemmed_tweet)
+    encoded_docs = [item for sublist in encoded_docs for item in sublist]
+    max_length = 100
+    padded_docs = pad_sequences([encoded_docs], maxlen=max_length, padding='post')
+    
+    # Load the pre-trained model
+    with open('LR_model.pkl', 'rb') as f:
+        LR_model = pickle.load(f)
+
+    # Predict sentiment/class
+    y_pred = LR_model.predict(padded_docs)
+    
+    # Display prediction result
+    st.write(f"Prediction: {y_pred}")
