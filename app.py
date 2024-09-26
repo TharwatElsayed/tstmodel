@@ -21,6 +21,7 @@ if st.button("Classify"):
         st.write(input_vector)
         # Predict the class using the logistic regression model
         prediction = model.predict(input_vector)[0]
+        st.write(input_vector)
 
         # Display the prediction result
         if prediction == 0:
