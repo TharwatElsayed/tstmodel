@@ -85,3 +85,8 @@ if st.button('Predict'):
     # Display prediction result
     st.write(f"Prediction: {label_map[y_pred[0]]}")
     st.write(f"Prediction: {y_pred}")
+    st.write(f"preprocessed_tweet: {preprocessed_tweet}")
+    st.write(f"Cleaned_tweet: {clean_tweet}")
+    st.write(f"Stripped_tweet: {stripped_tweet}")
+    st.write(f"Stemmed_tweet: {stemmed_tweet}")
+    st.write(f"Tokenized_padded_docs: {padded_docs}")
