@@ -79,6 +79,9 @@ if st.button('Predict'):
 
     # Predict sentiment/class
     y_pred = LR_model.predict(padded_docs)
-    
+
+    # Map the prediction to a human-readable label
+    label_map = {0: 'Hate Speech', 1: 'Offensive Language', 2: 'Neither'}
     # Display prediction result
+    st.write(f"Prediction: {label_map[y_pred[0]]}")
     st.write(f"Prediction: {y_pred}")
