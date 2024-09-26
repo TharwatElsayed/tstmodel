@@ -1,32 +1,11 @@
 # Import required libraries
 import streamlit as st
 import re
-import nltk
 from nltk.stem import PorterStemmer
 from nltk.tokenize import word_tokenize
-from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer as VS
-import pandas as pd
-import numpy as np
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.model_selection import StratifiedKFold, GridSearchCV, KFold
-from sklearn.metrics import classification_report, auc, roc_curve
-from sklearn.svm import LinearSVC
-import tensorflow as tf
-from tensorflow.keras.preprocessing.text import one_hot, Tokenizer
+from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.utils import pad_sequences
-from tensorflow.keras.models import Sequential, Model, load_model
-from tensorflow.keras.layers import (
-    Input, LSTM, Embedding, Dropout, Flatten, GlobalMaxPooling1D,
-    Dense, Conv1D, MaxPooling1D, Bidirectional, Concatenate, GRU, BatchNormalization
-)
 import pickle
-
-# Comment out pyenchant import and its usage
-# import enchant
-
-# Initialize the dictionary for hashtag splitting (disabled for now)
-# d = enchant.Dict('en_UK')
-# dus = enchant.Dict('en_US')
 
 # Preprocessing functions
 space_pattern = '\s+'
@@ -58,21 +37,11 @@ def preprocess_clean(text_string, remove_hashtags=True, remove_special_chars=Tru
         parsed_text = re.sub('(\!|\?)+', '', parsed_text)
     return parsed_text
 
-# Comment out or modify hashtag splitting functionality
 def strip_hashtags(text):
     text = preprocess_clean(text, False, True)
     hashtags = re.findall('#[\w\-]+', text)
     for tag in hashtags:
         cleantag = tag[1:]
-        # Comment out this part that uses pyenchant
-        # if d.check(cleantag) or dus.check(cleantag):
-        #     text = re.sub(tag, cleantag, text)
-        # else:
-        hashtagSplit = ""
-        # You can implement a custom hashtag splitting logic here if needed
-        # For now, we're simply removing hashtags
-        # for word in splitter.split(cleantag.lower(), 'en_US'):
-        #     hashtagSplit += word + " "
         text = re.sub(tag, cleantag, text)
     return text
 
